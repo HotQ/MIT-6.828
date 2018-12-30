@@ -3,7 +3,7 @@ In-class assignment: shell
 
 This assignment will make you more familiar with the Unix system call interface and the shell by implementing several features in a small shell. You can do this assignment on any operating system that supports the Unix API (a Linux Athena machine, your laptop with Linux or MacOS, etc.). At the end of class submit your shell to the [submission web site](https://pdos.csail.mit.edu/6.828/submit/).
 
-Download the [skeleton](https://pdos.csail.mit.edu/6.828/2012/homework/sh.c) of the xv6 shell, and look it over. The skeleton shell contains two main parts: parsing shell commands and implementing them. The parser recognizes only simple shell commands such as the following:
+Download the [skeleton](sh.c) of the xv6 shell, and look it over. The skeleton shell contains two main parts: parsing shell commands and implementing them. The parser recognizes only simple shell commands such as the following:
 
 ```sh
 ls > y
@@ -13,7 +13,7 @@ rm y1
 ls |  sort | uniq | wc
 rm y
 ```
-Cut and paste these commands into a file t.sh You can compile the skeleton shell as follows:
+Cut and paste these commands into a file `t.sh` You can compile the skeleton shell as follows:
 
 ```sh
 $ gcc sh.c
@@ -36,7 +36,7 @@ Implement simple commands, such as:
 $ ls
 ```
 
-The parser already builds an execcmd for you, so the only code you have to write is for the ' ' case in runcmd. To test that you can run "ls". You might find it useful to look at the manual page for exec; type "man 3 exec".
+The parser already builds an `execcmd` for you, so the only code you have to write is for the ' ' case in `runcmd`. To test that you can run "ls". You might find it useful to look at the manual page for exec; type "man 3 exec".
 
 I/O redirection
 ---------------
@@ -48,7 +48,7 @@ echo "6.828 is cool" > x.txt
 cat < x.txt
 ```
 
-The parser already recognizes ">" and "<", and builds a redircmd for you, so your job is just filling out the missing code in `runcmd` for those symbols. Make sure your implementation runs correctly with the above test input. You might find the man pages for open and close useful.
+The parser already recognizes ">" and "<", and builds a `redircmd` for you, so your job is just filling out the missing code in `runcmd` for those symbols. Make sure your implementation runs correctly with the above test input. You might find the man pages for open and close useful.
 
 Implement pipes
 ---------------

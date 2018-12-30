@@ -1,5 +1,3 @@
-L1: O/S overview
-
 O/S overview
 ============
 
@@ -19,10 +17,9 @@ Overview
     *   the small view: a h/w management library
     *   the big view: physical machine -> abstract one w/ better properties
 *   Organization: layered picture
-    
-    *   h/w: CPU, mem, disk
-    *   kernel: \[various services\]
-    *   user: applications, e.g. vi and gcc
+      *   h/w: CPU, mem, disk
+      *   kernel: [various services]
+      *   user: applications, e.g. vi and gcc
     
     *   we care a lot about the interfaces and internel kernel structure
 *   what services does an O/S kernel typically provide?
@@ -81,7 +78,7 @@ Case study: the shell (simplified)
 *   the shell is also a programming/scripting language
 *   typically handles login session, runs other processes
 *   look at some simple examples of shell operations, how they use different O/S abstractions, and how those abstractions fit together. See [Unix paper](../readings/ritchie78unix.pdf) if you are unfamiliar with the shell.
-*   Basic structure: see [sh.c](../homework/sh.c)
+*   Basic structure: see [sh.c](sh.c)
 *   Basic organization: parsing and executing commands (e.g., ls, ls | wc, ls > out)
 *   Shell implemented using system calls (e.g., read, write, fork, exec, wait) conventions: -1 return value signals error, error code stored in `errno`, `perror` prints out a descriptive error message based on `errno`.
 *   Many systems calls are encapsulated in libc calls (e.g., fgets vs read)
@@ -96,11 +93,11 @@ Case study: the shell (simplified)
     what if child exits before parent calls wait?
 *   What does parscmd() do?
 *   Example:
-    
+      ```bash    
     	$ ls
-    
+      ```
 *   The parse functions form a simple recursive-descent parser for the sh scripting language
-*   Do exercise 1 of [shell assignment](../homework/xv6-shell.html)
+*   Do exercise 1 of [shell assignment](shell_exercises.md)
 *   You need a variant of exec() (type "man 3 exec"):  
     replaces memory of current process with instrs/data from file  
     i.e. runs a file created by compiler/linker  
