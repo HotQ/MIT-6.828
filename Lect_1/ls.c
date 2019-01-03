@@ -1,44 +1,66 @@
 #include <stdio.h>
 #include <dirent.h>
-
+#include <getopt.h>
 #define MAXARGS 10
-struct option{
-    unsigned int isa : 1 ;
+
+// output options
+struct oution{
+    unsigned int all : 1 ;
     unsigned int is1 : 1 ;
-}option;
+}oution;
+
+int   pathc = 0;
+char const *paths[MAXARGS-1] = {};
+
+struct option opts[]={
+      {"all", 0, 0, 'a'},
+      {"almost-all", 0, 0, 'A'},
+      {"version", 0, 0, 'v'}
+};
+
+void ls(char const* path){
+    DIR *dir = opendir(path);
+    struct dirent * dirp;
+    while ((dirp = readdir(dir)) != NULL){
+        if((dirp->d_name)[0] == '.' && oution.all == 0)
+        continue;
+        fprintf(stdout, "%s%c", dirp->d_name, oution.is1 ? '\n' : '\t');
+    }
+
+    if(oution.is1 == 0)
+        fprintf(stdout, "\n");
+}
 
 int main(int argc, char const **argv)
 {
-    char *path[MAXARGS-1];
-    int pathnum;
-    
-    for(int i = 1; i < MAXARGS; ++i)
-        if(argv[i] == 0) break;
-        else {
-            const char *arg = argv[i];
-            switch(arg[0]){
-                case '-': 
-                switch(arg[1]){
-                    case 'a': option.isa = 1; break;
-                    case 'A': option.isa = 0; break;
-                    case '1': option.is1 = 1; break;
-                    default: fprintf(stdout, "usage: ls [-Aa1]\n");return 0;
-                }
-                break;
-                default: fprintf(stdout, "usage: ls [-Aa1]\n");return 0;
-            }     
+    int ch;
+    while((ch = getopt_long(argc,(char * const *)argv,"aAv1",opts,NULL)) != -1){
+        switch(ch){
+            case 'a': oution.all = 1; break;
+            case 'A': oution.all = 0; break;
+            case '1': oution.is1 = 1; break;
+            case 'v': fprintf(stdout, "too early to get a version number\n"); return 0;
+            default:  fprintf(stdout, "usage: ls [-Aa1][--OPTION]\n");return 0;
         }
-
-    DIR *dir = opendir(".");
-    struct dirent * dirp;
-    while ((dirp = readdir(dir)) != NULL){
-        if((dirp->d_name)[0] == '.' && option.isa == 0)
-        continue;
-        fprintf(stdout, "%s%c", dirp->d_name, option.is1 ? '\n' : '\t');
     }
-
-    if(option.is1 == 0)
-        fprintf(stdout, "\n");
-
+    for(int i = optind; i < argc; ++i)
+        //fprintf(stdout,"%s\n",argv[i]);
+        //ls(argv[i]);
+        paths[pathc++] = argv[i];
+    
+    if(pathc == 0)
+        paths[pathc++] = ".";
+    if(pathc == 1){
+        ls(paths[0]);
+    }
+    else{
+        for(int i = 0; i < pathc-1; ++i){
+            fprintf(stdout,"%s\n",paths[i]);
+            ls(paths[i]);
+            fprintf(stdout,"\n");
+        }
+        fprintf(stdout,"%s\n",paths[pathc-1]);
+        ls(paths[pathc-1]);
+    }
     return 0;
 }
