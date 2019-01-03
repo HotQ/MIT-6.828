@@ -26,7 +26,6 @@ void ls(char const* path){
         continue;
         fprintf(stdout, "%s%c", dirp->d_name, oution.is1 ? '\n' : '\t');
     }
-
     if(oution.is1 == 0)
         fprintf(stdout, "\n");
 }
@@ -40,19 +39,16 @@ int main(int argc, char const **argv)
             case 'A': oution.all = 0; break;
             case '1': oution.is1 = 1; break;
             case 'v': fprintf(stdout, "too early to get a version number\n"); return 0;
-            default:  fprintf(stdout, "usage: ls [-Aa1][--OPTION]\n");return 0;
+            default:  fprintf(stdout, "usage: ls [-Aav1][--OPTION] [path ...]\n");return 0;
         }
     }
     for(int i = optind; i < argc; ++i)
-        //fprintf(stdout,"%s\n",argv[i]);
-        //ls(argv[i]);
         paths[pathc++] = argv[i];
     
     if(pathc == 0)
         paths[pathc++] = ".";
-    if(pathc == 1){
+    if(pathc == 1)
         ls(paths[0]);
-    }
     else{
         for(int i = 0; i < pathc-1; ++i){
             fprintf(stdout,"%s\n",paths[i]);
