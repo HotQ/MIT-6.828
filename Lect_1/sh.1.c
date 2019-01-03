@@ -103,7 +103,7 @@ getcmd(char *buf, char *hostbuf, int nbuf)
 {
   gethostname(hostbuf,100);
   size_t _offset = strlen(hostbuf);
-  getcwd(hostbuf + _offset - 1,101 - _offset);
+  getcwd(hostbuf + _offset, 101 - _offset);
   if (isatty(fileno(stdin)))
     fprintf(stdout, "%s$ ",hostbuf);
   memset(buf, 0, nbuf);
