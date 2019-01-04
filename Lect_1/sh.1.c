@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
 
 //#define DEBUG
 #define PC // people's Choice
@@ -43,6 +44,8 @@ struct pipecmd {
 int fork1(void);  // Fork but exits on failure.
 struct cmd *parsecmd(char*);
 
+char shellpath[128];
+
 // Execute cmd.  Never returns.
 void
 runcmd(struct cmd *cmd)
@@ -69,13 +72,11 @@ runcmd(struct cmd *cmd)
     #endif
     if(ecmd->argv[0] == 0)
       exit(0);
-
-    if(strcmp(ecmd->argv[0],"ls")==0){
-      #ifdef PC
-      execv("./ls",ecmd->argv);
-      #else
-      execv("/bin/ls",ecmd->argv);
-      #endif   
+    char toolspath[128];
+    strcat(strcpy(toolspath, shellpath), "/");
+    if(access(strcat(toolspath, ecmd->argv[0]),X_OK)==0){
+      int err = execv(toolspath, ecmd->argv);
+      fprintf(stderr, "%d errno = %d\n", err, errno );
     }else
       fprintf(stderr, "exec not implemented\n");
 
@@ -119,6 +120,9 @@ main(void)
   static char buf[100],
               hostbuf[100];
   int fd, r;
+  
+  //save the path of the shell
+  getcwd(shellpath, sizeof(shellpath));
 
   // Read and run input commands.
   while(getcmd(buf, hostbuf, sizeof(buf)) >= 0){
