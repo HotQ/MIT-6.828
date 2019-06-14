@@ -345,9 +345,57 @@ Trace into `bootmain()` in `boot/main.c`, and then into `readsect()`. Identify t
 Be able to answer the following questions:
 
 *   At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?
+[boot/boot.S](../lab/boot/boot.S)
+    ```s
+    # Switch from real to protected mode, using a bootstrapGDT
+    # and segment translation that makes virtual addresses 
+    # identical to their physical addresses, so that the 
+    # effective memory map does not change during the switch.
+    lgdt    gdtdesc
+    movl    %cr0, %eax
+    orl     $CR0_PE_ON, %eax
+    movl    %eax, %cr0 
+    ```
 *   What is the _last_ instruction of the boot loader executed, and what is the _first_ instruction of the kernel it just loaded?
+    [boot/main.c](../lab/boot/main.c)
+    ```c
+    void
+    bootmain(void)
+    {
+      // ...
+      // call the entry point from the ELF header
+      // note: does not return!
+      ((void (*)(void)) (ELFHDR->e_entry))();
+      // ...
+    }
+    ```
+    [obj/boot/boot.asm](../lab/obj/boot/boot.asm)
+    ```asm
+    void
+    bootmain(void)
+    {
+      // ...
+      // call the entry point from the ELF header
+      // note: does not return!
+      ((void (*)(void)) (ELFHDR->e_entry))();
+        7d6b:	ff 15 18 00 01 00    	call   *0x10018
+    }
+    ```
 *   _Where_ is the first instruction of the kernel?
+    ```gdb
+    (gdb) b *0x7d6b
+    Breakpoint 1 at 0x7d6b
+    (gdb) c
+    Continuing.
+    The target architecture is assumed to be i386
+    => 0x7d6b:      call   *0x10018
+
+    Breakpoint 1, 0x00007d6b in ?? ()
+    (gdb) si
+    => 0x10000c:    movw   $0x1234,0x472
+    ```
 *   How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?
+    `e_phoff , e_phnum `
 
 ### Loading the Kernel
 
@@ -521,7 +569,41 @@ In the final exercise of this lab, we will explore in more detail the way the C 
 
 Determine where the kernel initializes its stack, and exactly where in memory its stack is located. How does the kernel reserve space for its stack? And at which "end" of this reserved area is the stack pointer initialized to point to?
 </td></tr></table>
+```S
+	# Now paging is enabled, but we're still running at a low EIP
+	# (why is this okay?).  Jump up above KERNBASE before entering
+	# C code.
+	mov	$relocated, %eax
+	jmp	*%eax
+relocated:
 
+	# Clear the frame pointer register (EBP)
+	# so that once we get into debugging C code,
+	# stack backtraces will be terminated properly.
+	movl	$0x0,%ebp			# nuke frame pointer
+
+	# Set the stack pointer
+	movl	$(bootstacktop),%esp
+
+	# now to C code
+	call	i386_init
+
+	# Should never get here, but in case we do, just spin.
+spin:	jmp	spin
+
+
+.data
+###################################################################
+# boot stack
+###################################################################
+	.p2align	PGSHIFT		# force page alignment
+	.globl		bootstack
+bootstack:
+	.space		KSTKSIZE
+	.globl		bootstacktop   
+bootstacktop:
+
+```
 The x86 stack pointer (`esp` register) points to the lowest location on the stack that is currently in use. Everything _below_ that location in the region reserved for the stack is free. Pushing a value onto the stack involves decreasing the stack pointer and then writing the value to the place the stack pointer points to. Popping a value from the stack involves reading the value the stack pointer points to and then increasing the stack pointer. In 32-bit mode, the stack can only hold 32-bit values, and esp is always divisible by four. Various x86 instructions, such as `call`, are "hard-wired" to use the stack pointer register.
 
 The `ebp` (base pointer) register, in contrast, is associated with the stack primarily by software convention. On entry to a C function, the function's _prologue_ code normally saves the previous function's base pointer by pushing it onto the stack, and then copies the current `esp` value into `ebp` for the duration of the function. If all the functions in a program obey this convention, then at any given point during the program's execution, it is possible to trace back through the stack by following the chain of saved `ebp` pointers and determining exactly what nested sequence of function calls caused this particular point in the program to be reached. This capability can be particularly useful, for example, when a particular function causes an `assert` failure or `panic` because bad arguments were passed to it, but you aren't sure _who_ passed the bad arguments. A stack backtrace lets you find the offending function.
