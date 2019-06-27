@@ -34,3 +34,24 @@ main.c 的主要作用是将内核的可执行代码从硬盘镜像中读入到�
 所以 IBM 的工程师使用 PS/2 Controller 输出端口中多余的端口来管理 A20 gate，也就是第 21 根地址总线（从 0 开始）。
 注意下表，0x60用于读写数据，0x64用于读写状态。
 
+```dot
+digraph cprintf{
+    cprintf -> vcprintf -> vprintfmt;
+    vprintfmt -> putch;
+    vprintfmt -> printnum-> putch;
+    vprintfmt -> printfmt-> putch;
+     printfmt-> vprintfmt;
+    vprintfmt -> getuint
+    vprintfmt -> getint
+    putch -> cputchar -> cons_putc -> serial_putc -> delay -> inb;
+	cons_putc -> lpt_putc;
+	cons_putc -> cga_putc;
+    serial_putc -> inb;
+    serial_putc -> outb;
+    lpt_putc -> inb;
+    lpt_putc -> outb;
+    cga_putc -> cons_putc
+    cga_putc -> outb
+}
+```
+
