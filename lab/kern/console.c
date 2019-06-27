@@ -316,10 +316,14 @@ static int
 kbd_proc_data(void)
 {
 	int c;
-	uint8_t data;
+	uint8_t stat, data;
 	static uint32_t shift;
 
-	if ((inb(KBSTATP) & KBS_DIB) == 0)
+	stat = inb(KBSTATP);
+	if ((stat & KBS_DIB) == 0)
+		return -1;
+	// Ignore data from mouse.
+	if (stat & KBS_TERR)
 		return -1;
 
 	data = inb(KBDATAP);

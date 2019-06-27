@@ -26,7 +26,6 @@ static struct Command commands[] = {
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
     { "backtrace", "Display a listing of function call frames", mon_backtrace},
 };
-#define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
 /***** Implementations of basic kernel monitor commands *****/
 
@@ -35,7 +34,7 @@ mon_help(int argc, char **argv, struct Trapframe *tf)
 {
 	int i;
 
-	for (i = 0; i < NCOMMANDS; i++)
+	for (i = 0; i < ARRAY_SIZE(commands); i++)
 		cprintf("%s - %s\n", commands[i].name, commands[i].desc);
 	return 0;
 }
@@ -114,7 +113,7 @@ runcmd(char *buf, struct Trapframe *tf)
 	// Lookup and invoke the command
 	if (argc == 0)
 		return 0;
-	for (i = 0; i < NCOMMANDS; i++) {
+	for (i = 0; i < ARRAY_SIZE(commands); i++) {
 		if (strcmp(argv[0], commands[i].name) == 0)
 			return commands[i].func(argc, argv, tf);
 	}
